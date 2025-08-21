@@ -1,3 +1,6 @@
+import { db } from '../db';
+import { schoolLocationsTable } from '../db/schema';
+import { asc } from 'drizzle-orm';
 import { type SchoolLocation } from '../schema';
 
 /**
@@ -6,12 +9,21 @@ import { type SchoolLocation } from '../schema';
  * can select from when recording attendance.
  */
 export async function getSchoolLocations(): Promise<SchoolLocation[]> {
-  // This is a placeholder implementation! Real code should be implemented here.
-  // The goal of this handler is to:
-  // 1. Fetch all school locations from the database
-  // 2. Return them sorted by name or creation date
-  // 3. Include all location details (coordinates, radius)
-  
-  // Placeholder response - empty array
-  return Promise.resolve([]);
+  try {
+    // Fetch all school locations sorted by name
+    const results = await db.select()
+      .from(schoolLocationsTable)
+      .orderBy(asc(schoolLocationsTable.name))
+      .execute();
+
+    // Convert numeric fields from strings to numbers
+    return results.map(location => ({
+      ...location,
+      latitude: parseFloat(location.latitude), // Convert numeric to number
+      longitude: parseFloat(location.longitude) // Convert numeric to number
+    }));
+  } catch (error) {
+    console.error('Failed to get school locations:', error);
+    throw error;
+  }
 }
